@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Fraud report serverless API reconstructed from KT AIVLE School project design
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 30
+    MemorySize: 128
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref FraudReportsTable
+        LOCAL_MODE: "false"
+
+Resources:
+  FraudReportsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: fraud-reports
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: suspicion_id
+          AttributeType: S
+        - AttributeName: suspect_account
+          AttributeType: S
+        - AttributeName: created_at
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+      KeySchema:
+        - AttributeName: suspicion_id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: suspect-account-created-at-index
+          KeySchema:
+            - AttributeName: suspect_account
+              KeyType: HASH
+            - AttributeName: created_at
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: status-created-at-index
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+            - AttributeName: created_at
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  FraudHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src.lambda_function.lambda_handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref FraudReportsTable
+      Events:
+        CreateReport:
+          Type: Api
+          Properties:
+            Path: /fraud-reports
+            Method: post
+        ListReports:
+          Type: Api
+          Properties:
+            Path: /fraud-reports
+            Method: get
+        GetReport:
+          Type: Api
+          Properties:
+            Path: /fraud-reports/{id}
+            Method: get
+        UpdateStatus:
+          Type: Api
+          Properties:
+            Path: /fraud-reports/{id}/status
+            Method: put
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
