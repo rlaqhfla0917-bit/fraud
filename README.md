@@ -133,6 +133,12 @@ pip install -r requirements.txt
 pytest -q
 ```
 
+## Access control and deployment warning
+
+The SAM template requires AWS IAM authorization (SigV4 signed requests with appropriately scoped `execute-api:Invoke` permission) for `GET /fraud-reports`, `GET /fraud-reports/{id}`, and `PUT /fraud-reports/{id}/status`. **A valid IAM identity alone is not sufficient**; the caller must be granted an appropriate execute-api resource ARN. Those endpoints must not be exposed through unauthenticated proxies.
+
+`POST /fraud-reports` remains open as a demonstration of public intake. **Do not deploy publicly with real personal data** until rate limits, abuse protection, privacy retention/deletion, access logs and least-privilege access controls have been designed and tested. The default example includes personal-data fields but does not establish production compliance. In local tests the Lambda handler itself remains unauthenticated because enforcement occurs at API Gateway.
+
 ## AWS SAM Deploy
 
 AWS SAM CLI가 설치되어 있다면:
