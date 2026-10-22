@@ -67,16 +67,22 @@ Resources:
           Properties:
             Path: /fraud-reports
             Method: get
+            Auth:
+              Authorizer: AWS_IAM
         GetReport:
           Type: Api
           Properties:
             Path: /fraud-reports/{id}
             Method: get
+            Auth:
+              Authorizer: AWS_IAM
         UpdateStatus:
           Type: Api
           Properties:
             Path: /fraud-reports/{id}/status
             Method: put
+            Auth:
+              Authorizer: AWS_IAM
 
 Outputs:
   ApiUrl:
