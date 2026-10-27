@@ -1,9 +1,7 @@
 # Fraud Report Serverless API
 ### AWS Serverless Architecture 기반 금융사기 통합 신고 플랫폼
 
-KT AIVLE School 팀 프로젝트에서 설계한 **금융사기 통합 신고 플랫폼**의 발표자료를 바탕으로 포트폴리오용으로 재구현한 서버리스 백엔드입니다.
-
-발표자료에는 API Gateway, Lambda, DynamoDB, CloudWatch 중심의 아키텍처와 API·DynamoDB 설계가 상세히 정의되어 있었으나 전체 Lambda 원본 소스는 제공 자료에서 확인되지 않아, 이 저장소의 코드는 **해당 설계를 기준으로 다시 구현한 버전**입니다.
+KT AIVLE School 팀 프로젝트에서 설계한 **금융사기 통합 신고 플랫폼**의 API를 AWS Serverless 구조로 구현했습니다. 공개 코드는 당시 발표자료의 API·데이터 설계를 기준으로 작성했습니다.
 
 > 목표: 전화 대기·수기 접수 중심 흐름을  
 > **모바일 신고 → 즉시 접수번호 발급 → 리스크 자동 판정 → 상태 관리**로 전환
@@ -133,11 +131,11 @@ pip install -r requirements.txt
 pytest -q
 ```
 
-## Access control and deployment warning
+## 접근 제어 및 배포 주의사항
 
-The SAM template requires AWS IAM authorization (SigV4 signed requests with appropriately scoped `execute-api:Invoke` permission) for `GET /fraud-reports`, `GET /fraud-reports/{id}`, and `PUT /fraud-reports/{id}/status`. **A valid IAM identity alone is not sufficient**; the caller must be granted an appropriate execute-api resource ARN. Those endpoints must not be exposed through unauthenticated proxies.
+SAM 템플릿의 신고 조회·상태 변경 API는 AWS IAM 인증을 사용합니다. SigV4 서명과 해당 경로에 대한 `execute-api:Invoke` 권한이 필요하며, 인증 없는 프록시로 공개하면 안 됩니다.
 
-`POST /fraud-reports` remains open as a demonstration of public intake. **Do not deploy publicly with real personal data** until rate limits, abuse protection, privacy retention/deletion, access logs and least-privilege access controls have been designed and tested. The default example includes personal-data fields but does not establish production compliance. In local tests the Lambda handler itself remains unauthenticated because enforcement occurs at API Gateway.
+`POST /fraud-reports`는 데모용 공개 접수 경로입니다. 실제 개인정보를 처리하려면 요청 제한, 악용 방지, 보관·삭제 정책, 접근 기록 및 최소 권한 설계가 먼저 필요합니다. 로컬에서 Lambda 함수를 직접 호출할 때는 API Gateway의 IAM 인증이 적용되지 않습니다.
 
 ## AWS SAM Deploy
 
@@ -169,7 +167,6 @@ Lambda 함수 내부에는 신고 상태를 저장하지 않고 DynamoDB에 저�
 ### Auto-Scale
 Lambda와 DynamoDB On-Demand의 관리형 확장 기능을 활용하는 구조입니다.
 
-## Source Fidelity
+## 설계 자료
 
-이 저장소는 **발표자료의 서버리스 아키텍처와 인터페이스 설계를 실제 코드로 재구현한 프로젝트**입니다.  
-발표자료 내부에서 서로 다르게 적힌 리스크 예시는 임의로 숨기지 않고 `docs/SOURCE_NOTES.md`에 기록했습니다.
+발표자료의 구조와 위험도 규칙을 구현 기준으로 삼았습니다. 자료에 기록된 리스크 규칙의 표기 차이는 [`docs/SOURCE_NOTES.md`](docs/SOURCE_NOTES.md)에 정리했습니다.
